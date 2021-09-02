@@ -236,17 +236,19 @@ const resolvers = {
         /*returns an array of either TvShows or movies depending on the client's input*/
         search: async ( _: unknown, {name}:{name: string}, {dataSources}: {dataSources: any}) => {
             const data: MovieIF[] | TvShowIF[] = await dataSources.movieAPI.Search(name);
-            return data.map((item: MovieIF | TvShowIF) => {
-                if(item.media_type === 'movie') return {
-                    __typename: 'Movies',
-                    ...item
-                }
-
-                if(item.media_type === 'tv') return {
-                    __typename: 'TvShows',
-                    ...item
-                }
-            });
+            if(Array.isArray(data)) {
+                return data.map((item: MovieIF | TvShowIF) => {
+                    if(item.media_type === 'movie') return {
+                        __typename: 'Movies',
+                        ...item
+                    }
+                    
+                    if(item.media_type === 'tv') return {
+                        __typename: 'TvShows',
+                        ...item
+                    }
+                });
+            }
         }
     },
 
