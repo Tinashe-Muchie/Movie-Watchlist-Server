@@ -235,8 +235,8 @@ const resolvers = {
         },
         /*returns an array of either TvShows or movies depending on the client's input*/
         search: async ( _: unknown, {name}:{name: string}, {dataSources}: {dataSources: any}) => {
-            const data: MovieIF[] | TvShowIF[] = await dataSources.movieAPI.Search(name);
-            if(Array.isArray(data)){
+            const data = await dataSources.movieAPI.Search(name);
+            
                 return data.map((item) => {
                     if(item.media_type === 'movie') return {
                         __typename: 'Movies',
@@ -247,8 +247,7 @@ const resolvers = {
                         __typename: 'TvShows',
                         ...item
                     }
-                });
-            }   
+                }); 
         }
     },
 
