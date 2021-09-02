@@ -236,8 +236,7 @@ const resolvers = {
         /*returns an array of either TvShows or movies depending on the client's input*/
         search: async ( _: unknown, {name}:{name: string}, {dataSources}: {dataSources: any}) => {
             const data: MovieIF[] | TvShowIF[] = await dataSources.movieAPI.Search(name);
-            if(Array.isArray(data)) {
-                return data.map((item: MovieIF | TvShowIF) => {
+                return data.map((item) => {
                     if(item.media_type === 'movie') return {
                         __typename: 'Movies',
                         ...item
@@ -248,7 +247,7 @@ const resolvers = {
                         ...item
                     }
                 });
-            }
+            
         }
     },
 
@@ -325,6 +324,11 @@ interface TvShowIF {
     poster_path: string;
     vote_average: number;
     vote_count: number;
+}
+
+type item = {
+    movie: MovieIF;
+    tv: TvShowIF;
 }
 
 
