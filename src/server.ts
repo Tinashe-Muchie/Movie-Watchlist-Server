@@ -14,7 +14,7 @@ const typeDefs = gql`
     }
     "The Search returns either Movies or TvShows"
     union Search = Movie | TvShow
-    
+
     type Movies {
         page: Int!
         results: [Movie!]!
@@ -26,7 +26,7 @@ const typeDefs = gql`
         results: [TvShow!]!
         total_results: Int!
     }
-    
+
     "The Movies type represents movies retrieved from discover movies"
     type Movie {
         poster_path: String
@@ -39,6 +39,7 @@ const typeDefs = gql`
         reviews: [Reviews]
         videos: [Videos]
     }
+
     "The Tv Shows type represents movies retrieved from discover Tv Shows"
     type TvShow {
         poster_path: String
@@ -51,6 +52,7 @@ const typeDefs = gql`
         reviews: [Reviews]
         videos: [Videos]
     }
+
     type MovieDetails {
         genres: [Genres]
         id: Int!
@@ -61,6 +63,7 @@ const typeDefs = gql`
         title: String
         vote_average: Float
     }
+
     type TvShowDetails {
         created_by: [Creators]
         first_air_date: String
@@ -74,10 +77,12 @@ const typeDefs = gql`
         seasons: [Seasons]
         vote_average: Float
     }
+
     type Genres {
         id: Int!
         name: String
     }
+
     type Seasons {
         air_date: String
         episode_count: Int
@@ -95,6 +100,7 @@ const typeDefs = gql`
         name: String
         profile_path: String
     }
+
     "Movie/Tv Show cast"
     type Cast {
         id: Int!
@@ -102,18 +108,21 @@ const typeDefs = gql`
         profile_path: String
         character: String
     }
+
     "Movie/TvShows reviews"
     type Reviews {
         author_details: Author
         content: String
         id: String
     }
+
     "A movie/Tv Show review author"
     type Author {
         name: String
         avatar_path: String
         rating: String
     }
+
     "Videos is used to retrieve trailers for movies/ Tv Shows"
     type Videos {
         name: String
@@ -121,23 +130,23 @@ const typeDefs = gql`
         site: String
         type: String
         id: String
-    }
+    }    
 `;
 
 class MovieAPI extends RESTDataSource {
-    constructor(){
+     constructor(){
         super();
         this.baseURL = 'https://api.themoviedb.org/3/';
     }
 
     async getMovies(page_number: number) {
-        return this.get(`discover/movie?api_key=${process.env.API_KEY}&
-        language=en-US&sort_by=popularity.desc&include_adult=false&include_video=false&page=${page_number}`);
+        return this.get(`discover/movie?api_key=${process.env.API_KEY}&language=en-US&
+        sort_by=popularity.desc&include_adult=false&include_video=false&page=${page_number}`);
     }
 
-    async getTvShows(page_number) {
-        return this.get(`discover/tv?api_key=${process.env.API_KEY}&
-        language=en-US&sort_by=popularity.desc&page=${page_number}&include_null_first_air_dates=false`);
+    async getTvShows(page_number: number) {
+        return this.get(`discover/tv?api_key=${process.env.API_KEY}&language=en-US&
+        sort_by=popularity.desc&page=${page_number}&include_null_first_air_dates=false`);
     }
 
     async getMovieDetails(movie_id: number) {
@@ -222,10 +231,10 @@ class MovieAPI extends RESTDataSource {
 }
 
 const resolvers = {
-    Query: {
+   Query: {
         /*returns an array of movies from the discover endpoint that will be used to 
         populate the movie section in the frontend */
-        getMovies: async (_: unknown, {page}:{page: number}, {dataSources}: {dataSources: any}) => {
+        getMovies: async (_: unknown, {page}: {page: number}, {dataSources}: {dataSources: any}) => {
             return dataSources.movieAPI.getMovies(page);
         },
         /*returns an array of Tv Shows from the discover endpoint*/
@@ -246,19 +255,18 @@ const resolvers = {
         },
         /*returns an array of either TvShows or movies depending on the client's input*/
         search: async ( _: unknown, {name}:{name: string}, {dataSources}: {dataSources: any}) => {
-            const data = await dataSources.movieAPI.Search(name);
-            
-                return data.map((item) => {
-                    if(item.media_type === 'movie') return {
-                        __typename: 'Movies',
-                        ...item
-                    }
-                    
-                    if(item.media_type === 'tv') return {
-                        __typename: 'TvShows',
-                        ...item
-                    }
-                }); 
+            const data: MovieIF[] | TvShowIF[] = await dataSources.movieAPI.Search(name);
+            return data.map((item: MovieIF | TvShowIF) => {
+                if(item.media_type === 'movie') return {
+                    __typename: 'Movies',
+                    ...item
+                }
+
+                if(item.media_type === 'tv') return {
+                    __typename: 'TvShows',
+                    ...item
+                }
+            });
         }
     },
 
