@@ -5,17 +5,30 @@ import { RESTDataSource } from 'apollo-datasource-rest';
 
 const typeDefs = gql`
     type Query {
-        getMovies: [Movies!]!
-        getTvShows: [TvShows!]!
-        getTopRatedMovies: [Movies!]!
-        getUpcomingMovies: [Movies!]!
-        getTopRatedTvShows: [TvShows!]!
+        getMovies(page: Int!): Movies!
+        getTvShows(page: Int!): TvShows!
+        getTopRatedMovies: [Movie!]!
+        getUpcomingMovies: [Movie!]!
+        getTopRatedTvShows: [TvShow!]!
         search(name: String!): [Search!]
     }
     "The Search returns either Movies or TvShows"
-    union Search = Movies | TvShows
-    "The Movies type represents movies retrieved from discover movies"
+    union Search = Movie | TvShow
+    
     type Movies {
+        page: Int!
+        results: [Movie!]!
+        total_results: Int!
+    }
+
+    type TvShows {
+        page: Int!
+        results: [TvShow!]!
+        total_results: Int!
+    }
+    
+    "The Movies type represents movies retrieved from discover movies"
+    type Movie {
         poster_path: String
         release_date: String
         id: Int!
@@ -27,7 +40,7 @@ const typeDefs = gql`
         videos: [Videos]
     }
     "The Tv Shows type represents movies retrieved from discover Tv Shows"
-    type TvShows {
+    type TvShow {
         poster_path: String
         id: Int!
         vote_average: Float
@@ -117,16 +130,14 @@ class MovieAPI extends RESTDataSource {
         this.baseURL = 'https://api.themoviedb.org/3/';
     }
 
-    async getMovies() {
-        const {results} = await this.get(`discover/movie?api_key=${process.env.API_KEY}&
-        language=en-US&sort_by=popularity.desc&include_adult=false&include_video=false&page=1`);
-        return results;
+    async getMovies(page_number: number) {
+        return this.get(`discover/movie?api_key=${process.env.API_KEY}&
+        language=en-US&sort_by=popularity.desc&include_adult=false&include_video=false&page=${page_number}`);
     }
 
-    async getTvShows() {
-        const {results} = await this.get(`discover/tv?api_key=${process.env.API_KEY}&
-        language=en-US&sort_by=popularity.desc&page=1&include_null_first_air_dates=false`);
-        return results;
+    async getTvShows(page_number) {
+        return this.get(`discover/tv?api_key=${process.env.API_KEY}&
+        language=en-US&sort_by=popularity.desc&page=${page_number}&include_null_first_air_dates=false`);
     }
 
     async getMovieDetails(movie_id: number) {
@@ -214,12 +225,12 @@ const resolvers = {
     Query: {
         /*returns an array of movies from the discover endpoint that will be used to 
         populate the movie section in the frontend */
-        getMovies: async (_: unknown, __: unknown, {dataSources}: {dataSources: any}) => {
-            return dataSources.movieAPI.getMovies();
+        getMovies: async (_: unknown, {page}:{page: number}, {dataSources}: {dataSources: any}) => {
+            return dataSources.movieAPI.getMovies(page);
         },
         /*returns an array of Tv Shows from the discover endpoint*/
-        getTvShows: async (_: unknown, __: unknown, {dataSources}: {dataSources: any}) => {
-            return dataSources.movieAPI.getTvShows();
+        getTvShows: async (_: unknown, {page}:{page: number}, {dataSources}: {dataSources: any}) => {
+            return dataSources.movieAPI.getTvShows(page);
         },
         /*returns an array of top rated movies on tmdb*/
         getTopRatedMovies: async (_: unknown, __: unknown, {dataSources}: {dataSources: any}) => {
@@ -251,7 +262,7 @@ const resolvers = {
         }
     },
 
-    Movies: {
+    Movie: {
         /*returns an object of movie details*/
         details: async ({id}:{id: number}, __: unknown, {dataSources}: {dataSources: any}) => {
             return dataSources.movieAPI.getMovieDetails(id);
@@ -270,7 +281,7 @@ const resolvers = {
         }
     },
 
-    TvShows: {
+    TvShow: {
         /*returns an object of Tv Shows' details*/
         details: async ({id}:{id: number}, __: unknown, {dataSources}: {dataSources: any}) => {
             return dataSources.movieAPI.getTvShowsDetails(id);
