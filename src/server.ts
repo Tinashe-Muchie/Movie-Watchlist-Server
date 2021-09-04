@@ -258,12 +258,12 @@ const resolvers = {
             const data = await dataSources.movieAPI.Search(name);
             return data.map((item) => {
                 if(item.media_type === 'movie') return {
-                    __typename: 'Movies',
+                    __typename: 'Movie',
                     ...item
                 }
 
                 if(item.media_type === 'tv') return {
-                    __typename: 'TvShows',
+                    __typename: 'TvShow',
                     ...item
                 }
             });
