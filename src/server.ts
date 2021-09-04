@@ -58,7 +58,6 @@ const typeDefs = gql`
         id: Int!
         poster_path: String
         release_date: String
-        revenue: Int
         runtime: Int
         title: String
         vote_average: Float
