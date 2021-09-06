@@ -61,6 +61,8 @@ const typeDefs = gql`
         runtime: Int
         title: String
         vote_average: Float
+        overview: String
+        tagline: String
     }
 
     type TvShowDetails {
@@ -75,6 +77,8 @@ const typeDefs = gql`
         poster_path: String    
         seasons: [Seasons]
         vote_average: Float
+        overview: String
+        tagline: String
     }
 
     type Genres {
